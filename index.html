@@ -1,0 +1,44 @@
+<html style="color-scheme: light dark;">
+  <body>
+    <script>
+      (async () => {
+        let rproxy_path = "";
+
+        let base_url = `${document.location.protocol}//${document.location.host}`;
+        let url_path = document.location.pathname.replace(/^\//, "").replace(/\/$/, "");
+        
+        let api_url = `${base_url}/api/${url_path}/`;
+
+        console.log(`API: ${api_url}`);
+
+        if (rproxy_path.trim().length !== 0) {
+          console.log(`Swapping out api and ${rproxy_path}`);
+          // 1. Create a pattern: (api)/(rproxy_path)
+          // We use parentheses to create "Capturing Groups"
+          let pattern = "(api)/(" + rproxy_path + ")";
+          let swap_regex = new RegExp(pattern, "g");
+          // 2. Perform the swap
+          // $1 refers to 'api', $2 refers to 'rproxy_path'
+          api_url = api_url.replace(swap_regex, "$2/$1");
+          // 3. Report new api_url
+          console.log(`API: ${api_url}`);
+        }
+
+        const response = await fetch(api_url);
+        const data = await response.json();
+
+        let htmlString = "<ul>";
+        for (let file of data) {
+          if (file.name != "index.html" && file.name != "404.html") {
+            let loc_ref = document.location.href.replace(/\/$/, "");
+            htmlString += `<li><a href="${loc_ref}/${file.name}">${file.name}</a></li>`;
+          }
+        }
+        htmlString += "</ul>";
+
+        document.getElementsByTagName("body")[0].innerHTML = htmlString;
+      })()
+    </script>
+  <body>
+</html>
+
